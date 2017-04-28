@@ -2,8 +2,6 @@
 
 let $ = (id) => document.getElementById(id);
 let RADIUS = 20
-let ATTACK = 0.1
-let DECAY = 0.3
 let COLORS = {
     'red': '#DF151A',
     'orange': '#FD8603',
@@ -33,13 +31,10 @@ filter.type = 'peaking'
 filter.Q.value = 1.5
 
 let delay = actx.createDelay(3)
+let delayFilter = actx.createBiquadFilter()
+delayFilter.type = 'highpass'
 let delayGain = actx.createGain()
 delayGain.gain.value = 0.3
-
-let shifter = pitchShifter(actx)
-
-let delayMixerClean = actx.createGain()
-let delayMixerShifted = actx.createGain()
 
 let out = actx.createGain()
 out.gain.value = 0.1
@@ -49,12 +44,8 @@ env.connect(filter)
 filter.connect(out)
 filter.connect(delay)
 
-delay.connect(delayMixerClean)
-delay.connect(shifter.shifter)
-shifter.shifter.connect(delayMixerShifted)
-
-delayMixerClean.connect(delayGain)
-delayMixerShifted.connect(delayGain)
+delay.connect(delayFilter)
+delayFilter.connect(delayGain)
 
 delayGain.connect(delay)
 delayGain.connect(out)
@@ -64,26 +55,18 @@ osc.start()
 
 function setAudioParams() {
     delay.delayTime.value = $('delay').value / 40
-    delayGain.gain.value = $('zoom').value
-    let rotate = $('rotate') / 360
-    if (rotate == 0) {
-        delayMixerClean.gain.value = 1
-        delayMixerShifted.gain.value = 0
-    } else {
-        shifter.pitch = 1 - rotate
-        delayMixerClean.gain.value = 0
-        delayMixerShifted.gain.value = 1
-    }
+    delayGain.gain.value = $('1:1').checked ? 1 : $('zoom').value
+    delayFilter.frequency.value = $('rotate').value * 20
 }
 
 function openGate() {
-    // env.gain.cancelAndHoldAtTime(actx.currentTime)
-    env.gain.exponentialRampToValueAtTime(1.0, actx.currentTime + ATTACK)
+    let attack = parseFloat($('attack').value)
+    env.gain.exponentialRampToValueAtTime(1.0, actx.currentTime + attack)
 }
 
 function closeGate() {
-    // env.gain.cancelAndHoldAtTime(actx.currentTime)
-    env.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + DECAY)
+    let decay = parseFloat($('decay').value)
+    env.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + decay)
 }
 
 $('delay').addEventListener('input', setAudioParams)
