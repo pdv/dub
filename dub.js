@@ -14,9 +14,9 @@ let COLORS = {
 
 // Canvas
 
-let canvas = $('screen');
-let sw = canvas.width;
-let sh = canvas.height;
+let canvas = $('screen')
+let sw = canvas.width
+let sh = canvas.height
 let ctx = canvas.getContext('2d')
 
 // Audio
@@ -29,7 +29,8 @@ let env = actx.createGain()
 env.gain.value = 0
 
 let filter = actx.createBiquadFilter()
-filter.type = 'lowpass'
+filter.type = 'peaking'
+filter.Q.value = 1.5
 
 let delay = actx.createDelay(3)
 let delayGain = actx.createGain()
@@ -83,6 +84,12 @@ $('color').addEventListener('input', (e) => {
     }
 })
 
+// Quantization
+
+function midiToHz(note) {
+    return 440 * (Math.pow(2, (note - 69) / 12))
+}
+
 
 // Mouse
 
@@ -109,8 +116,9 @@ canvas.addEventListener('mousemove', (e) => {
     mouse.x = e.clientX - rect.left - 15
     mouse.y = e.clientY - rect.top - 15
 
-    osc.frequency.value = mouse.y * 3
-    filter.frequency.value = mouse.x * 3
+    let note = (sh + 200 - mouse.y) / 10
+    osc.frequency.value = midiToHz($('quant').checked ? Math.floor(note) : note)
+    filter.frequency.value = midiToHz(mouse.x / 10)
 }, false)
 
 
