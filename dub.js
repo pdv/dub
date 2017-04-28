@@ -36,6 +36,11 @@ let delay = actx.createDelay(3)
 let delayGain = actx.createGain()
 delayGain.gain.value = 0.3
 
+let shifter = pitchShifter(actx)
+
+let delayMixerClean = actx.createGain()
+let delayMixerShifted = actx.createGain()
+
 let out = actx.createGain()
 out.gain.value = 0.1
 
@@ -43,7 +48,14 @@ osc.connect(env)
 env.connect(filter)
 filter.connect(out)
 filter.connect(delay)
-delay.connect(delayGain)
+
+delay.connect(delayMixerClean)
+delay.connect(shifter.shifter)
+shifter.shifter.connect(delayMixerShifted)
+
+delayMixerClean.connect(delayGain)
+delayMixerShifted.connect(delayGain)
+
 delayGain.connect(delay)
 delayGain.connect(out)
 out.connect(actx.destination)
@@ -53,6 +65,15 @@ osc.start()
 function setAudioParams() {
     delay.delayTime.value = $('delay').value / 40
     delayGain.gain.value = $('zoom').value
+    let rotate = $('rotate') / 360
+    if (rotate == 0) {
+        delayMixerClean.gain.value = 1
+        delayMixerShifted.gain.value = 0
+    } else {
+        shifter.pitch = 1 - rotate
+        delayMixerClean.gain.value = 0
+        delayMixerShifted.gain.value = 1
+    }
 }
 
 function openGate() {
@@ -106,9 +127,11 @@ canvas.addEventListener('mousedown', (e) => {
 }, false)
 
 canvas.addEventListener('mouseup', (e) => {
-    mouse.down = false
-    setAudioParams()
-    closeGate()
+    if (!$('hold').checked) {
+        mouse.down = false
+        setAudioParams()
+        closeGate()
+    }
 }, false)
 
 canvas.addEventListener('mousemove', (e) => {
