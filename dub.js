@@ -4,6 +4,13 @@ let $ = (id) => document.getElementById(id);
 let RADIUS = 20
 let ATTACK = 0.1
 let DECAY = 0.3
+let COLORS = {
+    'red': '#DF151A',
+    'orange': '#FD8603',
+    'yellow': '#F4F328',
+    'green': '#00DA3C',
+    'blue': '#00CBE7'
+}
 
 // Canvas
 
@@ -29,7 +36,7 @@ let delayGain = actx.createGain()
 delayGain.gain.value = 0.3
 
 let out = actx.createGain()
-out.gain.value = 0.5
+out.gain.value = 0.1
 
 osc.connect(env)
 env.connect(filter)
@@ -42,17 +49,39 @@ out.connect(actx.destination)
 
 osc.start()
 
-function openGate() {
-    // env.gain.cancelAndHoldAtTime(actx.currentTime)
-    env.gain.exponentialRampToValueAtTime(1.0, actx.currentTime + ATTACK)
+function setAudioParams() {
     delay.delayTime.value = $('delay').value / 40
     delayGain.gain.value = $('zoom').value
 }
 
+function openGate() {
+    // env.gain.cancelAndHoldAtTime(actx.currentTime)
+    env.gain.exponentialRampToValueAtTime(1.0, actx.currentTime + ATTACK)
+}
+
 function closeGate() {
     // env.gain.cancelAndHoldAtTime(actx.currentTime)
-    env.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + DECAY)
+    env.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + DECAY)
 }
+
+$('delay').addEventListener('input', setAudioParams)
+$('zoom').addEventListener('input', setAudioParams)
+$('color').addEventListener('input', (e) => {
+    switch ($('color').value) {
+    case 'red':
+        osc.type = 'sawtooth'
+        break
+    case 'orange':
+        osc.type = 'square'
+        break
+    case 'yellow':
+        osc.type = 'triangle'
+        break
+    case 'green':
+    case 'blue':
+        osc.type = 'sine'
+    }
+})
 
 
 // Mouse
@@ -65,11 +94,13 @@ let mouse = {
 
 canvas.addEventListener('mousedown', (e) => {
     mouse.down = true
+    setAudioParams()
     openGate()
 }, false)
 
 canvas.addEventListener('mouseup', (e) => {
     mouse.down = false
+    setAudioParams()
     closeGate()
 }, false)
 
@@ -93,7 +124,7 @@ function drawFrame(w) {
 
 function drawShape() {
   if (mouse.down) {
-    ctx.fillStyle = $('color').value
+    ctx.fillStyle = COLORS[$('color').value]
     ctx.beginPath()
     ctx.arc(mouse.x, mouse.y, RADIUS, 0, 2 * Math.PI, false)
     ctx.fill()
