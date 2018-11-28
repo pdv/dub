@@ -4,11 +4,17 @@
     <title>dub</title>
     <link rel="stylesheet" type="text/css" href="style.css">
     <script type="text/javascript" src="dat.gui.min.js"></script>
-    <script type="text/javascript" src="dub.js"></script>
+    <script type="text/javascript" src="vfb.js"></script>
   </head>
   <body>
       <div class="container">
         <canvas id="canvas" width=1000 height=1000 />
       </div>
+      <script>
+       window.onload = (e) => {
+         const canvas = document.getElementById('canvas');
+         vfb(canvas, '#fff');
+       }
+      </script>
   </body>
 </html>
