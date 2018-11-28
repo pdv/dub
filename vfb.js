@@ -1,4 +1,32 @@
 
+const settings = {
+    rotation: 20,
+    // rotationFreq: 0,
+    rotationOscFreq: 0.1,
+    rotationOscAmt: 0,
+    zoom: 0.7,
+    zoomOscFreq: 0.1,
+    zoomOscAmt: 0,
+    frameThickness: 5
+    // fade: 1,
+    // delay: 0,
+};
+
+function initializeControls() {
+    const gui = new dat.GUI();
+    const rotationFolder = gui.addFolder('Rotation');
+    rotationFolder.add(settings, 'rotation', 0, 360);
+    rotationFolder.add(settings, 'rotationOscFreq', 0, 1.0);
+    rotationFolder.add(settings, 'rotationOscAmt', 0, 360);
+    rotationFolder.open();
+    const zoomFolder = gui.addFolder('Zoom');
+    zoomFolder.add(settings, 'zoom', 0.1, 1.5);
+    zoomFolder.add(settings, 'zoomOscFreq', 0, 1);
+    zoomFolder.add(settings, 'zoomOscAmt', 0, 0.8);
+    zoomFolder.open();
+    gui.add(settings, 'frameThickness', 0, 15);
+}
+
 // Returns a new canvas the same size as [oldCanvas]
 function clone(oldCanvas) {
     const newCanvas = document.createElement('canvas');
@@ -16,10 +44,6 @@ function mousePos(canvas, event) {
         y: (event.clientY - rect.top) * scaleY
     };
 }
-
-const FRAME_THICKNESS = 5;
-const FADE = 1;
-const RADIUS = 50;
 
 /**
  * Given canvas [camera] and identically sized canvas [tv],
@@ -58,6 +82,7 @@ function drawFrame(ctx, color, thickness) {
 }
 
 function vfb(canvas, color) {
+    initializeControls();
     const tvCanvas = clone(canvas);
     const start = Date.now();
     let mouse = { x: 0, y: 0, down: false };
@@ -93,10 +118,18 @@ function vfb(canvas, color) {
     };
 
     const draw = () => {
-        const angle = 0 + oscillate(100000, 100);
-        const zoom = 0.7 + oscillate(90000, 0.299);
+        const rotationOsc = oscillate(
+            1000 / settings.rotationOscFreq,
+            settings.rotationOscAmt
+        );
+        const angle = settings.rotation + rotationOsc;
+        const zoomOsc = oscillate(
+            1000 / settings.zoomOscFreq,
+            settings.zoomOscAmt
+        );
+        const zoom = settings.zoom + zoomOsc;
         const drawFn = (ctx) => {
-            drawFrame(ctx, color, FRAME_THICKNESS);
+            drawFrame(ctx, color, settings.frameThickness);
             // drawShape(ctx, color);
         };
         recurse(canvas, tvCanvas, zoom, angle);
