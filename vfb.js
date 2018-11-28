@@ -1,13 +1,17 @@
 
 const settings = {
-    rotation: 20,
+    rotation: 20.0,
     // rotationFreq: 0,
     rotationOscFreq: 0.1,
-    rotationOscAmt: 0,
+    rotationOscAmt: 0.0,
     zoom: 0.7,
     zoomOscFreq: 0.1,
-    zoomOscAmt: 0,
-    frameThickness: 5
+    zoomOscAmt: 0.0,
+    zoomLimit: false,
+    frameColor: '#ffffff',
+    frameThickness: 5.0,
+    toolColor: '#ffffff',
+    toolRadius: 15.0
     // fade: 1,
     // delay: 0,
 };
@@ -23,8 +27,16 @@ function initializeControls() {
     zoomFolder.add(settings, 'zoom', 0.1, 1.5);
     zoomFolder.add(settings, 'zoomOscFreq', 0, 1);
     zoomFolder.add(settings, 'zoomOscAmt', 0, 0.8);
+    zoomFolder.add(settings, 'zoomLimit');
     zoomFolder.open();
-    gui.add(settings, 'frameThickness', 0, 15);
+    const frameFolder = gui.addFolder('Frame');
+    frameFolder.addColor(settings, 'frameColor');
+    frameFolder.add(settings, 'frameThickness', 0, 10);
+    frameFolder.open();
+    const toolFolder = gui.addFolder('Tool');
+    toolFolder.addColor(settings, 'toolColor');
+    toolFolder.add(settings, 'toolRadius', 0, 50);
+    toolFolder.open();
 }
 
 // Returns a new canvas the same size as [oldCanvas]
@@ -81,7 +93,7 @@ function drawFrame(ctx, color, thickness) {
     ctx.fillRect(0, h - t, w, t);
 }
 
-function vfb(canvas, color) {
+function vfb(canvas) {
     initializeControls();
     const tvCanvas = clone(canvas);
     const start = Date.now();
@@ -89,24 +101,22 @@ function vfb(canvas, color) {
 
     canvas.addEventListener('mousedown', (event) => {
         mouse = { ...mousePos(canvas, event), down: true };
-        console.log(mouse);
     });
 
     canvas.addEventListener('mousemove', (event) => {
         mouse = { ...mousePos(canvas, event), down: mouse.down };
-        console.log(mouse);
     });
 
     canvas.addEventListener('mouseup', (event) => {
         mouse = { down: false };
-        console.log(mouse);
     });
 
-    const drawShape = (ctx, color) => {
+    const drawShape = (ctx, color, radius) => {
         if (mouse.down) {
+            console.log("drawing shape at", mouse);
             ctx.fillStyle = color;
             ctx.beginPath();
-            ctx.arc(mouse.x, mouse.y, RADIUS, 0, 2 * Math.PI, false);
+            ctx.arc(mouse.x, mouse.y, radius, 0, 2 * Math.PI, false);
             ctx.fill();
         }
     };
@@ -128,11 +138,12 @@ function vfb(canvas, color) {
             settings.zoomOscAmt
         );
         const zoom = settings.zoom + zoomOsc;
+        const clippedZoom = settings.zoomLimit ? Math.min(zoom, 1) : zoom;
         const drawFn = (ctx) => {
-            drawFrame(ctx, color, settings.frameThickness);
-            // drawShape(ctx, color);
+            drawFrame(ctx, settings.frameColor, settings.frameThickness);
+            drawShape(ctx, settings.toolColor, settings.toolRadius);
         };
-        recurse(canvas, tvCanvas, zoom, angle);
+        recurse(canvas, tvCanvas, clippedZoom, angle);
         drawFn(canvas.getContext('2d'));
         window.requestAnimationFrame(draw);
     };
