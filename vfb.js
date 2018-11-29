@@ -6,7 +6,7 @@ const settings = {
     rotationOscAmt: 0.0,
     zoom: 0.7,
     zoomOscFreq: 0.1,
-    zoomOscAmt: 0.0,
+    zoomOscAmt: 0.001,
     zoomLimit: false,
     frameColor: '#ffffff',
     frameThickness: 5.0,
@@ -113,7 +113,6 @@ function vfb(canvas) {
 
     const drawShape = (ctx, color, radius) => {
         if (mouse.down) {
-            console.log("drawing shape at", mouse);
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.arc(mouse.x, mouse.y, radius, 0, 2 * Math.PI, false);
