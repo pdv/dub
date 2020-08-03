@@ -10,6 +10,7 @@ const settings = {
     zoomLimit: false,
     frameColor: '#ffffff',
     frameThickness: 5.0,
+    backgroundColor: '#333',
     toolColor: '#ffffff',
     toolRadius: 15.0
     // fade: 1,
@@ -31,8 +32,11 @@ function initializeControls() {
     zoomFolder.open();
     const frameFolder = gui.addFolder('Frame');
     frameFolder.addColor(settings, 'frameColor');
-    frameFolder.add(settings, 'frameThickness', 0, 10);
+    frameFolder.add(settings, 'frameThickness', 0, 100);
     frameFolder.open();
+    const backgroundFolder = gui.addFolder('Background');
+    backgroundFolder.addColor(settings, 'backgroundColor');
+    backgroundFolder.open();
     const toolFolder = gui.addFolder('Tool');
     toolFolder.addColor(settings, 'toolColor');
     toolFolder.add(settings, 'toolRadius', 0, 50);
@@ -93,7 +97,7 @@ function drawFrame(ctx, color, thickness) {
     ctx.fillRect(0, h - t, w, t);
 }
 
-function vfb(canvas) {
+function vfb(canvas, container) {
     initializeControls();
     const tvCanvas = clone(canvas);
     const start = Date.now();
@@ -144,6 +148,7 @@ function vfb(canvas) {
         };
         recurse(canvas, tvCanvas, clippedZoom, angle);
         drawFn(canvas.getContext('2d'));
+	container.style.backgroundColor = settings.backgroundColor;
         window.requestAnimationFrame(draw);
     };
     draw();

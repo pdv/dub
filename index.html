@@ -7,13 +7,14 @@
     <script type="text/javascript" src="vfb.js"></script>
   </head>
   <body>
-      <div class="container">
+      <div id="container">
         <canvas id="canvas" width=1000 height=1000 />
       </div>
       <script>
        window.onload = (e) => {
          const canvas = document.getElementById('canvas');
-         vfb(canvas);
+         const container = document.getElementById('container');
+         vfb(canvas, container);
        }
       </script>
   </body>
